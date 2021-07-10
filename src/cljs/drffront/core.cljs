@@ -1,5 +1,8 @@
 (ns drffront.core
+  (:require-macros [cljs.core.async.macros :refer [go]])
   (:require
+   [cljs.core.async :refer [<!]]
+   [cljs-http.client :as http]
    [reagent.core :as reagent :refer [atom]]
    [reagent.dom :as rdom]
    [reagent.session :as session]
@@ -10,13 +13,21 @@
 ;; -------------------------
 ;; Routes
 
+(def service-routes
+  {:controls "http://localhost:8000/api/control/"
+   :riders "http://localhost:8000/api/rider/"})
+
 (def router
   (reitit/router
    [["/" :index]
     ["/items"
      ["" :items]
      ["/:item-id" :item]]
-    ["/about" :about]]))
+    ["/about" :about]
+    ["/controls" :controls]
+    ["/riders" :riders]
+    ]))
+
 
 (defn path-for [route & [params]]
   (if params
@@ -59,6 +70,27 @@
   (fn [] [:span.main
           [:h1 "About drffront"]]))
 
+(defn loaddata [atm url]
+  (go (let [response (<! (http/get url
+                                   {:with-credentials? false}))]
+        (reset! atm (:body response))
+        )))
+
+(defn controls-page []
+  (let [controls (atom [])]
+    (loaddata controls (:controls service-routes))
+    (fn [] [:span.main
+            [:h1 "Controls Page"]
+            (for [control @controls]
+              ^{:key (:id control)} [:div (:id control) " " (:name control) " "  (:distance control) [:br]])])))
+
+(defn riders-page []
+  (let [riders (atom [])]
+    (loaddata riders (:riders service-routes))
+    (fn [] [:span.main
+            [:h1 "Riders Page"]
+            (for [rider @riders]
+              ^{:key (:id rider)} [:div (:id rider) " " (:first_name rider) " "  (:last_name rider) " " (:country rider) [:br]])])))
 
 ;; -------------------------
 ;; Translate routes -> page components
@@ -68,8 +100,10 @@
     :index #'home-page
     :about #'about-page
     :items #'items-page
-    :item #'item-page))
-
+    :item #'item-page
+    :controls #'controls-page
+    :riders #'riders-page
+    ))
 
 ;; -------------------------
 ;; Page mounting component
@@ -80,6 +114,8 @@
       [:div
        [:header
         [:p [:a {:href (path-for :index)} "Home"] " | "
+         [:a {:href (path-for :controls)} "Controls"] " | "
+         [:a {:href (path-for :riders)} "Riders"] " | "
          [:a {:href (path-for :about)} "About drffront"]]]
        [page]
        [:footer
