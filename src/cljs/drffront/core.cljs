@@ -15,7 +15,8 @@
 
 (def service-routes
   {:controls "http://localhost:8000/api/control/"
-   :riders "http://localhost:8000/api/rider/"})
+   :riders "http://localhost:8000/api/rider/"
+   :snippets "http://localhost:8000/api/snippets/"})
 
 (def router
   (reitit/router
@@ -71,26 +72,67 @@
           [:h1 "About drffront"]]))
 
 (defn loaddata [atm url]
-  (go (let [response (<! (http/get url
-                                   {:with-credentials? false}))]
-        (reset! atm (:body response))
+  (go (let [response (<! (http/get url {:with-credentials? false}))]
+        (reset! atm response)
+        ;;(js/console.log "Response retrieved" response)
         )))
 
+(defn postdata []
+  (go (let [response (<! (http/post (:snippets service-routes)
+                                    {:with-credentials? false
+                                     :json-params {:title "Test2 from cljs" :code "(prn \"testing\""}}))]
+        ;;(js/console.log "Post channel returns:" response (:body response))
+        )))
+
+;; (postdata)
+
 (defn controls-page []
-  (let [controls (atom [])]
-    (loaddata controls (:controls service-routes))
-    (fn [] [:span.main
-            [:h1 "Controls Page"]
-            (for [control @controls]
-              ^{:key (:id control)} [:div (:id control) " " (:name control) " "  (:distance control) [:br]])])))
+  (let [response (atom {:loading true})]
+    (loaddata response (:controls service-routes))
+    (fn []
+      [:span.main
+       [:h1 "Controls Page"]
+       (cond
+         (:loading @response)
+         [:div "Loading control data..."]
+
+         (not (:success @response))
+         [:div "Loading control data failed."]
+
+         true
+         [:table {:style {:border "1px solid red"}}
+          [:tbody
+           (for [control (get-in @response [:body :results])]
+             ^{:key (:id control)}
+             [:tr
+              [:td (:id control)]
+              [:td (:name control)]
+              [:td (:distance control)]
+              ])]])])))
 
 (defn riders-page []
-  (let [riders (atom [])]
-    (loaddata riders (:riders service-routes))
-    (fn [] [:span.main
-            [:h1 "Riders Page"]
-            (for [rider @riders]
-              ^{:key (:id rider)} [:div (:id rider) " " (:first_name rider) " "  (:last_name rider) " " (:country rider) [:br]])])))
+  (let [response (atom {:loading true})]
+    (loaddata response (:riders service-routes))
+    (fn []
+      [:span.main
+       [:h1 "Riders Page"]
+       (cond
+         (:loading @response)
+         [:div "Loading rider data..."]
+
+         (not (:success @response))
+         [:div "Loading rider data failed."]
+
+         true
+         [:table {:style {:border "1px solid orange"}}
+          [:tbody
+           (for [rider (get-in @response [:body :results])]
+             ^{:key (:id rider)}
+             [:tr
+              [:td (:id rider)]
+              [:td (:first_name rider)]
+              [:td (:last_name rider)]
+              [:td (:country rider)] [:br]])]])])))
 
 ;; -------------------------
 ;; Translate routes -> page components
