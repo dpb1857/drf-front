@@ -21,7 +21,7 @@
 (defn loading-page []
   (html5
    (head)
-   [:body {:class "body-container"}
+   [:body {:class "body-container bg-blue-600"}
     mount-target
     (include-js "/js/app.js")
     [:script "drffront.core.init_BANG_()"]]))
