@@ -38,26 +38,37 @@
 ;; -------------------------
 ;; Page components
 
-(def alert-style "bg-green-100 border border-red-400 text-red-700 px-4 py-3 rounded relative my-5")
+(def alert-style (str  "bg-green-100 border border-red-400 text-red-700 px-4 py-3 rounded relative my-5"
+                       " bg-gradient-to-b from-red-200 to-blue-300"))
 (def card-style "max-w-sm mx-auto flex p-6 bg-white rounded-lg shadow-xl")
 
 (defn home-page []
   (fn []
     [:span.main
-     [:h1 "Welcome to drffront"]
-     [:ul
-      [:li [:a {:href (path-for :items)} "Items of drffront"]]
-      [:li [:a {:href "/broken/link"} "Broken link"]]]
-     [:div.container
-      [:button.bg-blue-500.text-white.font-bold.p-4.rounded.hover:bg-blue-200 "More"]
+      [:h1 "Welcome to drffront"]
+     [:div.container.grid.grid-cols-2.gap-4.bg-yellow-700
 
-      [:div {:class alert-style
-             :role "alert"}
-       [:strong.font-bold "Alert!"]
-       [:span.block.sm:inline " Please update your password!"]]
+      ;; [:ul
+      ;;  [:li [:a {:href (path-for :items)} "Items of drffront"]]
+      ;;  [:li [:a {:href "/broken/link"} "Broken link"]]]
 
-      [:div {:class card-style}]
-      ]]
+      [:div.bg-yellow-100.border.border-red-400
+       [:button.bg-blue-500.text-white.font-bold.p-4.rounded.hover:bg-blue-200 "More"]]
+
+      [:div.bg-green-100.border.border-red-400
+       [:div {:class alert-style
+              :role "alert"}
+        [:strong.font-bold "Alert!"]
+        [:span.block.sm:inline " Please update your password!"]]]
+
+       ;; [:div {:class card-style}]
+      [:div.bg-red-100 "Hello, world"]
+      [:div.bg-red-200 "Goodbye, world"]
+      ]
+
+     ;; [:div.bg-green-300.border-green-600.border-b.p-4.m-4.rounded.hover:bg-red-200  "Hello, world."]
+
+     ]
     ))
 
 
